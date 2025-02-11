@@ -24,7 +24,7 @@ void saveGame(const string& filename, const Player& player) {
     }
 }
 
-// ฟังก์ชันโหลดข้อมูลผู้เล่นจากไฟล์ อันนี้ก็เดี๋ยวมาเพิ่มฟังค์ชั่นอีกทีว่าจะให้เก็บข้อมูลไรอีก
+// ฟังก์ชันโหลดข้อมูลผู้เล่นจากไฟล์ อันนี้ก็เดี๋ยวมาเพิ่มฟังก์ชั่นอีกทีว่าจะให้เก็บข้อมูลไรอีก
 bool loadGame(const string& filename, Player& player) {
     ifstream inFile(filename);
     if (inFile.is_open()) {
@@ -43,7 +43,7 @@ bool loadGame(const string& filename, Player& player) {
 // ตัวอย่างเป็นเวอร์ชั่น 0 อยู่
 int main() {
     string filename = "blackjack_save.txt";
-    Player player = {"John", 1000, 21};  // ข้อมูลตัอย่างผู้เล่น
+    Player player = {"jacky", 1000, 21};  // ข้อมูลตัอย่างผู้เล่น
 
     // อันนี้ใช้บันทึกเกม
     saveGame(filename, player);
