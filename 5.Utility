@@ -1,1 +1,40 @@
 
+#include<iostream>
+#include<cmath>
+using namespace std;
+int calculateScore(char card){
+    
+}
+void printcard(string player[],string dealer[],bool action){
+    cout<<"-----------------------------\n";
+    cout<<"DEALER CARDS\n";
+    int ND=sizeof(dealer)/sizeof(dealer[0]);
+    cout<<"dealer size"<<ND<<endl;
+    if(action == true){
+        for(int j=0;j<ND;j++){
+            cout<<dealer[j]<<"  ";
+        }
+    }
+    else cout<<dealer[0]<<"  ##";
+    cout<<"\n-----------------------------\n";
+    
+    cout<<"PLAYER CARDS\n";
+    int NP=sizeof(player)/sizeof(player[0]);
+    for(int i=0;i<NP;i++){
+    cout<<player[i]<<"  ";
+    }
+    cout<<"\n-----------------------------\n";
+
+
+}
+void printStats(){
+
+}
+
+int main(){
+    char player[]={'8','9','5','7'};
+    char dealer[]={'2','3'};
+    bool action;
+    cin>>action;
+    return 0;
+}
