@@ -1,1 +1,56 @@
+#include<iostream>
+#include<ctime>
+#include<cstdlib>
+using namespace std;
 
+void doubleDown(int &playerScore, int playercard[]) {
+    cout << "You chose to Double Down! Your bet is now doubled.\n";
+    playercard[2] = drawcard();
+    playerScore = calScore(playercard[0], playercard[1], playercard[2]);
+    cout << "Your 3rd card: " << cardNames[playercard[2]] << "\n";
+    cout << "Your new score: " << playerScore << "\n";
+}
+
+void splitHand(int playercard[]) {
+    cout << "You chose to split! Playing each hand separately.\n";
+
+    int splitHand1[3] = {playercard[0], drawcard(), 0};
+    int splitHand2[3] = {playercard[1], drawcard(), 0};
+
+    int score1, score2;
+
+    cout << "\n--- Playing first split hand ---\n";
+    playHand(score1, splitHand1);
+
+    cout << "\n--- Playing second split hand ---\n";
+    playHand(score2, splitHand2);
+}
+
+int main()
+{
+    do
+    {
+        cout<<"(1) Hit , (2) Stand , ";
+        if(playercard[0] == playercard[1]) cout<<"(3) Split , ";
+        if (player.balance >= player.bet) cout << "(4) Double down , ";
+        cout<<"Select : ";
+        cin>>playeraction;
+
+    }while(playeraction != 1 && playeraction != 2 && playeraction != 3 && playeraction != 4);
+    if(playeraction == 1)
+    {
+        drawcard;
+    }
+    else if(playeraction == 2)
+    {
+        cout<<"-----------Turn end-----------";
+    }
+    else if(playeraction == 3)
+    {
+         splitHand(playercard);
+    }
+    else if(playeraction == 4)
+    {
+        doubleDown(playerScore, playercard);
+    }
+}
