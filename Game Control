@@ -1,1 +1,49 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
 
+using namespace std;
+
+void startGame();
+void dealInitialCards(int &playerScore, int &dealerScore);
+void playerTurn(int &playerScore);
+void dealerTurn(int &dealerScore);
+void checkWinner(int playerScore, int dealerScore);
+bool askToPlayAgain();
+
+int main() {
+    srand(time(0)); //สุ่ม
+    bool playing = true;
+
+    while (playing) { 
+        int playerScore = 0;
+        int dealerScore = 0;
+
+        startGame(); 
+
+        // เรียกใช้ฟังก์ชัน
+        dealInitialCards(playerScore, dealerScore);
+        playerTurn(playerScore); 
+        dealerTurn(dealerScore); 
+
+        // ตรวจสอบผลของเกม
+        checkWinner(playerScore, dealerScore); 
+
+        // ถามว่าจะเล่นต่อไหม
+        playing = askToPlayAgain(); 
+    }
+
+    cout << "ขอบคุณที่เล่น Blackjack!" << endl;
+    return 0;
+}
+
+void startGame() {
+    cout << "ยินดีต้อนรับสู่เกม Blackjack!" << endl;
+}
+
+bool askToPlayAgain() {
+    char choice;
+    cout << "คุณต้องการเล่นอีกครั้ง (Y/N)? ";
+    cin >> choice;
+    return (choice == 'Y' || choice == 'y');
+}
