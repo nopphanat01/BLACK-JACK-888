@@ -1,1 +1,61 @@
+#include <iostream>
+#include <fstream>
+#include <string>
 
+using namespace std;
+
+struct Player {
+    string name;
+    int money;
+    int score; //ยังไม่ครบนะ เดี๋ยวมาเพิ่ม
+};
+
+// ฟังก์ชันบันทึกข้อมูลผู้เล่นลงไฟล์ (ขอไปหาข้อมูลเพิ่มเติมเพื่อมาเพิ่มในระบบใหม่ จะได้เอาไปใช้ขียนโค้ดเก็บสถิติอีก)
+void saveGame(const string& filename, const Player& player) {
+    ofstream outFile(filename);
+    if (outFile.is_open()) {
+        outFile << player.name << endl;
+        outFile << player.money << endl;
+        outFile << player.score << endl;
+        outFile.close();
+        cout << "✅ เกมถูกบันทึกเรียบร้อย!\n";
+    } else {
+        cout << "❌ ไม่สามารถบันทึกเกมได้!\n";
+    }
+}
+
+// ฟังก์ชันโหลดข้อมูลผู้เล่นจากไฟล์ อันนี้ก็เดี๋ยวมาเพิ่มฟังค์ชั่นอีกทีว่าจะให้เก็บข้อมูลไรอีก
+bool loadGame(const string& filename, Player& player) {
+    ifstream inFile(filename);
+    if (inFile.is_open()) {
+        getline(inFile, player.name);
+        inFile >> player.money;
+        inFile >> player.score;
+        inFile.close();
+        cout << "✅ โหลดข้อมูลเกมสำเร็จ!\n";
+        return true;
+    } else {
+        cout << "❌ ไม่พบไฟล์เซฟ!\n";
+        return false;
+    }
+}
+
+// ตัวอย่างเป็นเวอร์ชั่น 0 อยู่
+int main() {
+    string filename = "blackjack_save.txt";
+    Player player = {"John", 1000, 21};  // ข้อมูลตัอย่างผู้เล่น
+
+    // อันนี้ใช้บันทึกเกม
+    saveGame(filename, player);
+
+    // อันนี้ใช้โหลดเกมใหม่
+    Player loadedPlayer;
+    if (loadGame(filename, loadedPlayer)) {
+        cout << "📂 ข้อมูลที่โหลด:\n";
+        cout << "👤 ชื่อ: " << loadedPlayer.name << endl;
+        cout << "💰 เงิน: $" << loadedPlayer.money << endl;
+        cout << "🎯 คะแนน: " << loadedPlayer.score << endl;
+    }
+
+    return 0;
+}
