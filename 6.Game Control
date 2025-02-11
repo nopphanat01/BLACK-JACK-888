@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -8,12 +9,22 @@ void startGame();
 void dealInitialCards(int &playerScore, int &dealerScore);
 void playerTurn(int &playerScore);
 void dealerTurn(int &dealerScore);
-void checkWinner(int playerScore, int dealerScore);
 bool askToPlayAgain();
+void printStats(int wins, int losses, int ties);
+void loadStats(int &wins, int &losses, int &ties);
+void saveStats(int wins, int losses, int ties);
 
 int main() {
     srand(time(0)); //สุ่ม
     bool playing = true;
+
+    // สถิติ
+    int wins = 0;
+    int losses = 0;
+    int ties = 0;
+
+    // โหลดสถิติจากไฟล์
+    loadStats(wins, losses, ties);
 
     while (playing) { 
         int playerScore = 0;
@@ -26,8 +37,29 @@ int main() {
         playerTurn(playerScore); 
         dealerTurn(dealerScore); 
 
-        // ตรวจสอบผลของเกม
-        checkWinner(playerScore, dealerScore); 
+        // เช็คผลแพ้ชนะและเก็บสถิติ
+        if (playerScore > 21) {
+            cout << "คุณแพ้! คะแนนเกิน 21!" << endl;
+            losses++;
+        } else if (dealerScore > 21) {
+            cout << "ดีลเลอร์แพ้! คะแนนเกิน 21!" << endl;
+            wins++;
+        } else if (playerScore > dealerScore) {
+            cout << "คุณชนะ!" << endl;
+            wins++;
+        } else if (playerScore < dealerScore) {
+            cout << "คุณแพ้!" << endl;
+            losses++;
+        } else {
+            cout << "เสมอ!" << endl;
+            ties++;
+        }
+
+        // แสดงสถิติหลังเกม
+        printStats(wins, losses, ties);
+
+        // บันทึกสถิติลงไฟล์
+        saveStats(wins, losses, ties);
 
         // ถามว่าจะเล่นต่อไหม
         playing = askToPlayAgain(); 
@@ -46,4 +78,36 @@ bool askToPlayAgain() {
     cout << "คุณต้องการเล่นอีกครั้ง (Y/N)? ";
     cin >> choice;
     return (choice == 'Y' || choice == 'y');
+}
+
+void printStats(int wins, int losses, int ties) {
+    cout << "\n--- สถิติการเล่น ---" << endl;
+    cout << "ชนะ: " << wins << " เกม" << endl;
+    cout << "แพ้: " << losses << " เกม" << endl;
+    cout << "เสมอ: " << ties << " เกม" << endl;
+    cout << "----------------------\n" << endl;
+}
+
+void loadStats(int &wins, int &losses, int &ties) {
+    ifstream inputFile("stats.txt");
+
+    if (inputFile.is_open()) {
+        inputFile >> wins >> losses >> ties;
+        inputFile.close();
+    } else {
+        cout << "ไม่พบไฟล์สถิติ บันทึกใหม่..." << endl;
+    }
+}
+
+void saveStats(int wins, int losses, int ties) {
+    ofstream outputFile("stats.txt");
+
+    if (outputFile.is_open()) {
+        outputFile << wins << endl;
+        outputFile << losses << endl;
+        outputFile << ties << endl;
+        outputFile.close();
+    } else {
+        cout << "ไม่สามารถบันทึกไฟล์สถิติได้!" << endl;
+    }
 }
