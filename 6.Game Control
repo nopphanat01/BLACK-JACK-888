@@ -111,4 +111,4 @@ void saveStats(int wins, int losses, int ties) {
         cout << "ไม่สามารถบันทึกไฟล์สถิติได้!" << endl;
     }
 }
-//สวัสดีจ้า
+
