@@ -1,1 +1,43 @@
-test
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <vector>
+#include <random>
+#include <ctime>
+#include <algorithm>
+
+using namespace std;
+
+void printCard(vector<string> v) {
+    cout<<"------------------------------------------------------\n";
+    for(string e:v){
+        cout<< e <<" ";
+    }
+    cout<< endl;
+}
+
+vector<string> initializer() {
+    string suits[] = {"\3","\4","\5","\6"};
+    string ranks[] = {"A","2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+    vector<string> cards;
+    for (string s : suits) {
+        for (string r : ranks) {
+            cards.push_back(r+s);
+        }
+    }
+    return cards;
+}
+
+void shuffleDeck(vector<string>& deck) {
+    random_shuffle(deck.begin(), deck.end());
+}
+
+
+int main() {
+
+    vector<string> deck = initializer();
+    printCard(deck);
+    shuffleDeck(deck);
+    printCard(deck);
+    return 0;
+}
