@@ -1,22 +1,28 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 
 struct Player {
     string name;
     int money;
-    int score; //ยังไม่ครบนะ เดี๋ยวมาเพิ่ม
+    int score;
+    int gamesPlayed; // จน.เกมที่เล่น
+    int highScore;   
 };
 
-// ฟังก์ชันบันทึกข้อมูลผู้เล่นลงไฟล์ (ขอไปหาข้อมูลเพิ่มเติมเพื่อมาเพิ่มในระบบใหม่ จะได้เอาไปใช้ขียนโค้ดเก็บสถิติอีก)
+// ฟังก์ชันที่ไว้บันทึกข้อมูลผู้เล่นลงไฟล์ เพิ่มเติมเรียบร้อยละ
 void saveGame(const string& filename, const Player& player) {
     ofstream outFile(filename);
     if (outFile.is_open()) {
         outFile << player.name << endl;
         outFile << player.money << endl;
         outFile << player.score << endl;
+        outFile << player.gamesPlayed << endl;
+        outFile << player.highScore << endl;
         outFile.close();
         cout << "✅ เกมถูกบันทึกเรียบร้อย!\n";
     } else {
@@ -24,13 +30,15 @@ void saveGame(const string& filename, const Player& player) {
     }
 }
 
-// ฟังก์ชันโหลดข้อมูลผู้เล่นจากไฟล์ อันนี้ก็เดี๋ยวมาเพิ่มฟังก์ชั่นอีกทีว่าจะให้เก็บข้อมูลไรอีก
+// ฟังก์ชันไว้โหลดข้อมูลผู้เล่นจากไฟล์ เพิ่มเติมเรียบร้อยละ
 bool loadGame(const string& filename, Player& player) {
     ifstream inFile(filename);
     if (inFile.is_open()) {
         getline(inFile, player.name);
         inFile >> player.money;
         inFile >> player.score;
+        inFile >> player.gamesPlayed;
+        inFile >> player.highScore;
         inFile.close();
         cout << "✅ โหลดข้อมูลเกมสำเร็จ!\n";
         return true;
@@ -40,21 +48,38 @@ bool loadGame(const string& filename, Player& player) {
     }
 }
 
-// ตัวอย่างเป็นเวอร์ชั่น 0 อยู่
+// ฟังก์ชันที่ใช้เพื่อเก็บสถิติใหม่และปรับคะแนนสูงสุด พึ่งเพิ่ม
+void updateStatistics(Player& player) {
+    player.gamesPlayed++;
+    if (player.score > player.highScore) {
+        player.highScore = player.score;
+    }
+}
+
+// ฟังก์ชันแสดงข้อมูลสถิติ อันนี้ก็พึ่งเพิ่ม
+void showStatistics(const Player& player) {
+    cout << "📂 ข้อมูลผู้เล่น:\n";
+    cout << "👤 ชื่อ: " << player.name << endl;
+    cout << "💰 เงิน: $" << player.money << endl;
+    cout << "🎯 คะแนนปัจจุบัน: " << player.score << endl;
+    cout << "📊 จำนวนเกมที่เล่น: " << player.gamesPlayed << endl;
+    cout << "🏆 คะแนนสูงสุด: " << player.highScore << endl;
+}
+
 int main() {
     string filename = "blackjack_save.txt";
-    Player player = {"jacky", 1000, 21};  // ข้อมูลตัอย่างผู้เล่น
+    Player player = {"jacky", 1000, 21, 0, 0};  // ข้อมูลตัวอย่างผู้เล่น
 
-    // อันนี้ใช้บันทึกเกม
+    // อัปเดตสถิติก่อนบันทึก
+    updateStatistics(player);
+
+    // บันทึกเกม
     saveGame(filename, player);
 
-    // อันนี้ใช้โหลดเกมใหม่
+    // โหลดข้อมูลเกมใหม่
     Player loadedPlayer;
     if (loadGame(filename, loadedPlayer)) {
-        cout << "📂 ข้อมูลที่โหลด:\n";
-        cout << "👤 ชื่อ: " << loadedPlayer.name << endl;
-        cout << "💰 เงิน: $" << loadedPlayer.money << endl;
-        cout << "🎯 คะแนน: " << loadedPlayer.score << endl;
+        showStatistics(loadedPlayer);
     }
 
     return 0;
