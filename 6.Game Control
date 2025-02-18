@@ -113,3 +113,43 @@ void saveStats(int wins, int losses, int ties) {
 
 }
 
+//เพิ่มเติมรอบที่ 2 จ้า
+
+void updateStreak(int &streak, int &balance, bool win) {
+    if (win) {
+        streak = (streak >= 0) ? streak + 1 : 1; // ถ้าชนะติดกัน streak เพิ่ม, ถ้าเพิ่งแพ้มา reset เป็น 1
+        if (streak == 3) {
+            balance += 150; // โบนัสชนะ 3 ครั้งติด
+            cout << "🔥 Streak Bonus! You won 3 times in a row! +$150 🔥" << endl;
+        }
+    } else {
+        streak = (streak <= 0) ? streak - 1 : -1; // ถ้าแพ้ติดกัน streak ลด, ถ้าเพิ่งชนะมา reset เป็น -1
+        if (streak == -3) {
+            balance += 50; // โบนัสปลอบใจเมื่อแพ้ 3 ครั้งติด
+            cout << "💀 Consolation Bonus! You lost 3 times in a row! +$50 💀" << endl;
+        }
+    }
+}
+
+
+// ฟังก์ชันสำหรับการบล็อกการกระทำ
+void useBlockCard(vector<string>& playerHand, bool& dealerCanDraw, bool& canDoubleDown, bool& canSplit) {
+    string input;
+    cout << "You have a Block Card! Would you like to block the dealer's next action?" << endl;
+    cout << "Enter 'h' to block Dealer's next hit, 'd' to block Double Down, 's' to block Split: ";
+    cin >> input;
+    
+    if (input == "h") {
+        dealerCanDraw = false; // ห้ามดีลเลอร์จั่วไพ่
+        cout << "Dealer's next hit is blocked!" << endl;
+    } else if (input == "d") {
+        canDoubleDown = false; // ห้าม Double Down
+        cout << "Double Down is blocked!" << endl;
+    } else if (input == "s") {
+        canSplit = false; // ห้าม Split
+        cout << "Split is blocked!" << endl;
+    } else {
+        cout << "Invalid input." << endl;
+    }
+}
+
