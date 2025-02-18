@@ -1,1 +1,45 @@
+#include<iostream>
+#include<ctime>
+#include<cstdlib>
+using namespace std;
+
+int calDealerScore(int dealerCard0, int dealerCard1, int dealerCard2) {
+    int hand[] = {dealerCard0, dealerCard1, dealerCard2};
+    int sum = 0, aceCount = 0;
+
+    for (int i = 0; i < 3; i++) {
+        if (hand[i] == 1) {
+            aceCount++;
+            sum += 11;
+        } else {
+            sum += cardScores[hand[i]];
+        }
+    }
+
+    while (sum > 21 && aceCount > 0) {
+        sum -= 10;
+        aceCount--;
+    }
+
+    return sum;
+}
+
+int main()
+{
+    int dealerScore = calDealerScore(dealerCard[0], dealerCard[1], 0); 
+    cout << "Initial Dealer Score: " << dealerScore << endl;
+    if (dealerScore < 17) 
+    {
+        dealerCard[2] = drawCard(); // จั่วไพ่ใบที่สาม
+        cout << "Dealer draws a third card: " << cardNames[dealerCard[2]] << endl;
+        dealerScore = calDealerScore(dealerCard[0], dealerCard[1], dealerCard[2]);
+        cout << "New Dealer Score: " << dealerScore << endl;
+    }
+    else 
+    {
+        cout << "Dealer stays.\n";
+    }
+
+    return 0;
+}
 
