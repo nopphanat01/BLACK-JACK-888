@@ -1,0 +1,280 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+// ฟังก์ชันสร้างและสับไพ่
+vector<string> createDeck() {
+    vector<string> suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
+    vector<string> values = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+    vector<string> deck;
+
+    for (const string &suit : suits) {
+        for (const string &value : values) {
+            deck.push_back(value + " of " + suit);
+        }
+    }
+
+    // สับไพ่
+    srand(static_cast<unsigned int>(time(0)));
+    random_shuffle(deck.begin(), deck.end());
+
+    return deck;
+}
+
+// ฟังก์ชันคำนวณคะแนน
+int calculateScore(const vector<string> &hand) {
+    int score = 0;
+    int aces = 0;
+
+    for (const string &card : hand) {
+        string value = card.substr(0, card.find(" ")); // ดึงค่าของการ์ด (ส่วนก่อนช่องว่าง)
+        if (value == "A") {
+            score += 11;
+            aces++;
+        } else if (value == "J" || value == "Q" || value == "K") {
+            score += 10;
+        } else {
+            score += stoi(value);
+        }
+    }
+
+    // ปรับคะแนนหากมี Aces และคะแนนเกิน 21
+    while (score > 21 && aces > 0) {
+        score -= 10;
+        aces--;
+    }
+
+    return score;
+}
+
+// ฟังก์ชันแสดงมือการ์ด
+void showHand(const vector<string> &hand, const string &name) {
+    cout << name << "'s hand: ";
+    for (const string &card : hand) {
+        cout << card << ", ";
+    }
+    cout << "(Score: " << calculateScore(hand) << ")" << endl;
+}
+
+// ฟังก์ชันเล่นมือ
+void playHand(vector<string> &hand, vector<string> &deck, const string &name) {
+    char choice;
+    while (calculateScore(hand) < 21) {
+        cout << name << ", do you want to (1) hit or (2) stand? ";
+        cin >> choice;
+
+        if (choice == '1') {
+            hand.push_back(deck.back());
+            deck.pop_back();
+            showHand(hand, name);
+            if (calculateScore(hand) > 21) {
+                cout << "Bust! " << name << " loses.\n";
+                break;
+            }
+        } else if (choice == '2') {
+            break;
+        } else {
+            cout << "Invalid choice. Please enter 1 or 2.\n";
+        }
+    }
+}
+
+// ฟังก์ชัน Split
+void splitHand(vector<string> &playerHand, vector<string> &deck, int &betAmount, int &playerMoney, vector<string> &dealerHand) {
+    cout << "You chose to split! Playing each hand separately.\n";
+
+    // หักเงินเพิ่มสำหรับมือที่สอง
+    if (playerMoney >= betAmount) {
+        playerMoney -= betAmount;
+        cout << "You bet an additional " << betAmount << " dollars for the second hand.\n";
+    } else {
+        cout << "You don't have enough money to split. Playing the original hand.\n";
+        return;
+    }
+
+    // สร้างมือใหม่สำหรับ Split
+    vector<string> splitHand1 = {playerHand[0], deck.back()};
+    deck.pop_back();
+    vector<string> splitHand2 = {playerHand[1], deck.back()};
+    deck.pop_back();
+
+    // เล่นมือแรก
+    cout << "\n--- Playing first split hand ---\n";
+    showHand(splitHand1, "Hand 1");
+    playHand(splitHand1, deck, "Hand 1");
+
+    // เล่นมือที่สอง
+    cout << "\n--- Playing second split hand ---\n";
+    showHand(splitHand2, "Hand 2");
+    playHand(splitHand2, deck, "Hand 2");
+
+    // Dealer เล่น
+    cout << "\nDealer's turn:\n";
+    showHand(dealerHand, "Dealer");
+    while (calculateScore(dealerHand) < 17) {
+        dealerHand.push_back(deck.back());
+        deck.pop_back();
+        showHand(dealerHand, "Dealer");
+    }
+
+    // ตรวจสอบผลลัพธ์ของมือแรก
+    cout << "\nResults for Hand 1:\n";
+    if (calculateScore(splitHand1) > 21) {
+        cout << "Hand 1 busts! You lose this hand.\n";
+    } else if (calculateScore(dealerHand) > 21 || calculateScore(splitHand1) > calculateScore(dealerHand)) {
+        cout << "Hand 1 wins!\n";
+        playerMoney += betAmount * 2;
+    } else if (calculateScore(splitHand1) < calculateScore(dealerHand)) {
+        cout << "Hand 1 loses.\n";
+    } else {
+        cout << "Hand 1 ties.\n";
+        playerMoney += betAmount;
+    }
+
+    // ตรวจสอบผลลัพธ์ของมือที่สอง
+    cout << "\nResults for Hand 2:\n";
+    if (calculateScore(splitHand2) > 21) {
+        cout << "Hand 2 busts! You lose this hand.\n";
+    } else if (calculateScore(dealerHand) > 21 || calculateScore(splitHand2) > calculateScore(dealerHand)) {
+        cout << "Hand 2 wins!\n";
+        playerMoney += betAmount * 2;
+    } else if (calculateScore(splitHand2) < calculateScore(dealerHand)) {
+        cout << "Hand 2 loses.\n";
+    } else {
+        cout << "Hand 2 ties.\n";
+        playerMoney += betAmount;
+    }
+
+    cout << "You now have: " << playerMoney << " dollars\n";
+}
+
+// ฟังก์ชันหลัก
+int main() {
+    int playerMoney = 1000; // เงินเริ่มต้นของผู้เล่น
+    int betAmount;
+
+    cout << "You have: " << playerMoney << " dollars" << endl;
+
+    // การเดิมพัน
+    while (true) {
+        cout << "Enter your bet amount: ";
+        cin >> betAmount;
+
+        if (cin.fail()) {
+            cout << "Please enter a valid number!\n";
+            cin.clear();
+            cin.ignore(1000, '\n');
+        } else if (betAmount <= 0) {
+            cout << "Please enter a bet amount greater than 0!\n";
+        } else if (betAmount > playerMoney) {
+            cout << "You don't have enough money. Please enter a new bet!\n";
+        } else {
+            break;
+        }
+    }
+
+    cout << "You bet: " << betAmount << " dollars\n";
+    playerMoney -= betAmount;
+
+    // สร้างและสับไพ่
+    vector<string> deck = createDeck();
+
+    // แจกการ์ดเริ่มต้น
+    vector<string> playerHand = {deck.back()};
+    deck.pop_back();
+    playerHand.push_back(deck.back());
+    deck.pop_back();
+
+    vector<string> dealerHand = {deck.back()};
+    deck.pop_back();
+    dealerHand.push_back(deck.back());
+    deck.pop_back();
+
+    // แสดงการ์ด
+    cout << "Dealer's hand: " << dealerHand[0] << ", [Hidden Card]\n";
+    showHand(playerHand, "Player");
+
+    // ผู้เล่นเลือก Hit, Stand, Double Down, หรือ Split
+    char choice;
+    while (calculateScore(playerHand) < 21) {
+        cout << "Do you want to (1) hit, (2) stand, (3) double down";
+        if (playerHand[0].substr(0, playerHand[0].find(" ")) == playerHand[1].substr(0, playerHand[1].find(" "))) {
+            cout << ", or (4) split";
+        }
+        cout << "? ";
+        cin >> choice;
+
+        if (choice == '1') { // Hit
+            playerHand.push_back(deck.back());
+            deck.pop_back();
+            showHand(playerHand, "Player");
+            if (calculateScore(playerHand) > 21) {
+                cout << "Bust! You lose.\n";
+                return 0;
+            }
+        } else if (choice == '2') { // Stand
+            break;
+        } else if (choice == '3') { // Double Down
+            if (playerMoney >= betAmount) {
+                playerMoney -= betAmount;
+                betAmount *= 2;
+                playerHand.push_back(deck.back());
+                deck.pop_back();
+                showHand(playerHand, "Player");
+                if (calculateScore(playerHand) > 21) {
+                    cout << "Bust! You lose.\n";
+                    return 0;
+                }
+                break;
+            } else {
+                cout << "You don't have enough money to double down.\n";
+            }
+        } else if (choice == '4' && playerHand[0].substr(0, playerHand[0].find(" ")) == playerHand[1].substr(0, playerHand[1].find(" "))) { // Split
+            splitHand(playerHand, deck, betAmount, playerMoney, dealerHand);
+            return 0;
+        } else {
+            cout << "Invalid choice. Please enter 1, 2, 3";
+            if (playerHand[0].substr(0, playerHand[0].find(" ")) == playerHand[1].substr(0, playerHand[1].find(" "))) {
+                cout << ", or 4";
+            }
+            cout << ".\n";
+        }
+    }
+
+    // Dealer เล่น
+    cout << "\nDealer's turn:\n";
+    showHand(dealerHand, "Dealer");
+    while (calculateScore(dealerHand) < 17) {
+        dealerHand.push_back(deck.back());
+        deck.pop_back();
+        showHand(dealerHand, "Dealer");
+    }
+
+    // แสดงผลลัพธ์
+    cout << "\nFinal Results:\n";
+    showHand(dealerHand, "Dealer");
+    showHand(playerHand, "Player");
+
+    // ตรวจสอบผลลัพธ์
+    if (calculateScore(dealerHand) > 21) {
+        cout << "Dealer busts! You win!\n";
+        playerMoney += betAmount * 2;
+    } else if (calculateScore(dealerHand) > calculateScore(playerHand)) {
+        cout << "Dealer wins!\n";
+    } else if (calculateScore(dealerHand) < calculateScore(playerHand)) {
+        cout << "You win!\n";
+        playerMoney += betAmount * 2;
+    } else {
+        cout << "It's a tie!\n";
+        playerMoney += betAmount;
+    }
+
+    cout << "You now have: " << playerMoney << " dollars\n";
+
+    return 0;
+}
