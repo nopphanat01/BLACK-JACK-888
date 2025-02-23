@@ -1,0 +1,33 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    int playerMoney = 1000; // จำนวนเงินเริ่มต้นของผู้เล่น
+    int betAmount;
+
+    cout << "คุณมีเงินทั้งหมด: " << playerMoney << " หน่วย" << endl;
+
+    // การเลือกเดิมพัน
+    while (true) {
+        cout << "กรุณาเลือกจำนวนเงินเดิมพัน: ";
+        cin >> betAmount;
+
+        if (cin.fail()) {
+            cout << "กรุณากรอกจำนวนเงินเดิมพันที่เป็นตัวเลข!" << endl;
+            cin.clear(); // ล้าง error flag
+            cin.ignore(1000, '\n'); // ล้างข้อมูลที่ค้างใน buffer
+        } else if (betAmount <= 0) {
+            cout << "กรุณากรอกจำนวนเงินเดิมพันที่มากกว่า 0!" << endl;
+        } else if (betAmount > playerMoney) {
+            cout << "คุณมีเงินไม่พอ กรุณาเลือกเดิมพันใหม่!" << endl;
+        } else {
+            break; // หากเดิมพันถูกต้อง
+        }
+    }
+
+    cout << "คุณได้เดิมพัน: " << betAmount << " หน่วย" << endl;
+    playerMoney -= betAmount; // หักเงินจากผู้เล่น
+
+    return 0;
+}
+
