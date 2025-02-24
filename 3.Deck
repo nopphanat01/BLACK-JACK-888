@@ -33,16 +33,15 @@ string drawCard(vector<string>& deck) {
     return drawnCard;
 }
 
-int getCardscore(string card) { //ปริ้นคะแนน
-    if (card == "A") {
+int getCardscore(string card){
+    char k = card[0];
+    if ( k == 'J'||k == 'Q'|| k == 'K' || k == '1'){
+        return 10;
+    }else if(k == 'A'){
         return 11;
-    } else if (card == "J" || card == "Q" || card == "K") {
-        return 10;
-    } else if (card.substr(0, 2) == "10") {
-        return 10;
-    } else {
-    
-        return stoi(card.substr(0, 1));
+    }else{
+        int score = stoi(string(1,k));
+        return score;
     }
 }
 
