@@ -1,180 +1,191 @@
 #include <iostream>
+#include <string>
 #include <cstdlib>
+#include <vector>
+#include <random>
 #include <ctime>
-#include <fstream>
-
+#include <algorithm>
 using namespace std;
 
-// ฟังก์ชันประกาศ
-void startGame();
-void dealInitialCards(int &playerScore, int &dealerScore, int &playerMoney, int &betAmount);
-void playerTurn(int &playerScore, int &playerMoney, int &betAmount);
-void dealerTurn(int &dealerScore);
-bool askToPlayAgain();
-void printStats(int wins, int losses, int ties, int playerMoney);
-void loadStats(int &wins, int &losses, int &ties, int &playerMoney);
-void saveStats(int wins, int losses, int ties, int playerMoney);
+int playerMoney = 1000; // จำนวนเงินเริ่มต้นของผู้เล่น
+int bet, cardScores;
+
+int betAmount(int bet, int& playerMoney) {
+    while (true) {
+        if (cin.fail()) {
+            cout << "Plese enter the number" << endl;
+            cin.clear(); // ล้าง error flag
+            cin.ignore(1000, '\n'); // ล้างข้อมูลที่ค้างใน buffer
+        } else if (bet <= 0) {
+            cout << ">0" << endl;
+        } else if (bet > playerMoney) {
+            cout << "Deposit" << endl;
+        } else {
+            break; // หากเดิมพันถูกต้อง
+        }
+    }
+    cout << "Bet: " << bet << " Baht" << endl;
+    playerMoney -= bet; // หักเงินจากผู้เล่น
+    return bet;
+}
+
+vector<string> initializeDeck() {
+    string suits[] = {"D", "S", "H", "C"};
+    string ranks[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", 
+    "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+    vector<string> deck;
+    for (string suit : suits) {
+        for (string rank : ranks) {
+            deck.push_back(rank + suit);
+        }
+    }
+    return deck;
+}
+
+void shuffleDeck(vector<string>& deck) {
+    random_shuffle(deck.begin(), deck.end());
+}
+
+string drawCard(vector<string>& deck) {
+    if (deck.empty()) {
+        return "No more cards in the deck!";
+    }
+    string drawnCard = deck.back();
+    deck.pop_back();
+    return drawnCard;
+}
+
+int getCardScore(const string& card) {
+    char k = card[0];
+    if (k == 'J' || k == 'Q' || k == 'K' || k == '1') {
+        return 10;
+    } else if (k == 'A') {
+        return 11;
+    } else {
+        return stoi(string(1, k));
+    }
+}
+
+void playHand(vector<string>& deck, int& handScore) {
+    int action;
+    do {
+        cout << "(1) Hit , (2) Stand : ";
+        cin >> action;
+        if (action == 1) {
+            string newCard = drawCard(deck);
+            handScore += getCardScore(newCard);
+            cout << "New card: " << newCard << " (" << handScore << ")" << endl;
+            if (handScore > 21) {
+                cout << "Busted!" << endl;
+                break;
+            }
+        }
+    } while (action != 2);
+}
+
+void splitHand(vector<string>& deck, const string& card, int& playerMoney, int bet) {
+    if (playerMoney >= bet) {
+        playerMoney -= bet; // หักเงินเดิมพันสำหรับมือที่สอง
+        string newCard1 = drawCard(deck);
+        string newCard2 = drawCard(deck);
+        cout << "Split hand: " << card << " + " << newCard1 << " and " << card << " + " << newCard2 << endl;
+        
+        int hand1Score = getCardScore(card) + getCardScore(newCard1);
+        int hand2Score = getCardScore(card) + getCardScore(newCard2);
+        
+        cout << "Playing first hand..." << endl;
+        playHand(deck, hand1Score);
+        
+        cout << "Playing second hand..." << endl;
+        playHand(deck, hand2Score);
+    } else {
+        cout << "Not enough money to split." << endl;
+    }
+}
+
+int doubleDown(vector<string>& deck, int& playerScore, int& playerMoney, int bet) {
+    if (playerMoney >= bet) {
+        playerMoney -= bet; // เพิ่มเดิมพันเป็นสองเท่า
+        string newCard = drawCard(deck);
+        playerScore += getCardScore(newCard);
+        cout << "Double down! Drawn card: " << newCard << " (" << playerScore << ")" << endl;
+        if (playerScore > 21) {
+            cout << "Busted! You lose." << endl;
+        }
+        return playerScore;
+    }
+    cout << "Not enough money to double down." << endl;
+    return playerScore;
+}
+void Calulate(int scoreplayer,int scoredealer){
+    if(scoreplayer > 21 ){
+        cout  << "Busted! You lose." << endl;
+    }else if((21-scoreplayer) < (21-scoredealer)){
+        cout << "Player win!\n";
+    }else if((21-scoreplayer) > (21-scoredealer)){
+        cout << "Dealer win!\n";
+    }
+}
+
+bool Askplayagain(){
+    char choice;
+    cout << "Continue?(Y/N): ";
+    cin >> choice;
+    return(choice == 'Y');
+}
 
 int main() {
-    srand(time(0)); // ตั้งค่า seed สำหรับการสุ่ม
+    int playerAction;
     bool playing = true;
-
-    // สถิติ
-    int wins = 0;
-    int losses = 0;
-    int ties = 0;
-    int playerMoney = 1000; // เงินเริ่มต้นของผู้เล่น
-
-    // โหลดสถิติและเงินจากไฟล์
-    loadStats(wins, losses, ties, playerMoney);
-
-    while (playing) {
-        int playerScore = 0;
-        int dealerScore = 0;
-        int betAmount = 0;
-
-        startGame();
-
-        // รับเงินเดิมพัน
-        cout << "คุณมีเงิน: " << playerMoney << " บาท" << endl;
-        while (true) {
-            cout << "กรุณาใส่เงินเดิมพัน: ";
-            cin >> betAmount;
-
-            if (betAmount <= 0) {
-                cout << "เงินเดิมพันต้องมากกว่า 0!\n";
-            } else if (betAmount > playerMoney) {
-                cout << "คุณมีเงินไม่พอ!\n";
-            } else {
-                break;
-            }
+    srand(time(0));
+    vector<string> deck = initializeDeck();
+    shuffleDeck(deck);
+    string playerCard1 = drawCard(deck);
+    string playerCard2 = drawCard(deck);
+    string dealerCard1 = drawCard(deck);
+    string dealerCard2 = drawCard(deck);
+    while (playing)
+    {
+        cout << "Money remain: " << playerMoney << " Baht" << endl;
+        cout << "Bet: ";
+        cin >> bet;
+        bet = betAmount(bet, playerMoney);
+        cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
+        cout << "Player card: " << playerCard1 << " and " << playerCard2;
+        int scorePlayer = getCardScore(playerCard1) + getCardScore(playerCard2);
+        int scoreDealer =  getCardScore(dealerCard1) +  getCardScore(dealerCard2);
+        cout << " (" << scorePlayer << ")" << endl;
+        do {
+            cout << "(1) Hit , (2) Stand , ";
+            if (playerCard1 == playerCard2) cout << "(3) Split , ";
+            if (playerMoney >= bet) cout << "(4) Double down , ";
+            cout << "Select : ";
+            cin >> playerAction;
+        } while (playerAction != 1 && playerAction != 2 && playerAction != 3 && playerAction != 4);
+        if (playerAction == 1) {
+            
+            do {
+                string playerCard = drawCard(deck);
+                scorePlayer += getCardScore(playerCard);
+                cout << "New card: " << playerCard << " (" << scorePlayer << ")" << endl;
+                if (scorePlayer > 21) {
+                    //cout << "Busted! You lose." << endl;
+                    break;
+                }
+                cout << "(1) Hit , (2) Stand : ";
+                cin >> playerAction;
+            } while (playerAction != 2);
+        
+        } else if (playerAction == 2) {
+            
+        } else if (playerAction == 3) {
+            splitHand(deck, playerCard1, playerMoney, bet);
+        } else if (playerAction == 4) {
+            scorePlayer = doubleDown(deck, scorePlayer, playerMoney, bet);
         }
-
-        // เรียกใช้ฟังก์ชัน
-        dealInitialCards(playerScore, dealerScore, playerMoney, betAmount);
-        playerTurn(playerScore, playerMoney, betAmount);
-
-        if (playerScore <= 21) { // ถ้าผู้เล่นไม่ Bust ให้ Dealer เล่น
-            dealerTurn(dealerScore);
+        cout <<"Dealer's card :"<< dealerCard1 <<" and "<< dealerCard2 << " (" << scoreDealer << ")\n";
+        Calulate(scorePlayer,scoreDealer);
+        playing = Askplayagain();
         }
-
-        // เช็คผลแพ้ชนะและเก็บสถิติ
-        if (playerScore > 21) {
-            cout << "คุณแพ้! คะแนนเกิน 21!" << endl;
-            losses++;
-            playerMoney -= betAmount;
-        } else if (dealerScore > 21) {
-            cout << "ดีลเลอร์แพ้! คะแนนเกิน 21!" << endl;
-            wins++;
-            playerMoney += betAmount;
-        } else if (playerScore > dealerScore) {
-            cout << "คุณชนะ!" << endl;
-            wins++;
-            playerMoney += betAmount;
-        } else if (playerScore < dealerScore) {
-            cout << "คุณแพ้!" << endl;
-            losses++;
-            playerMoney -= betAmount;
-        } else {
-            cout << "เสมอ!" << endl;
-            ties++;
-        }
-
-        // แสดงสถิติหลังเกม
-        printStats(wins, losses, ties, playerMoney);
-
-        // บันทึกสถิติและเงินลงไฟล์
-        saveStats(wins, losses, ties, playerMoney);
-
-        // ถามว่าจะเล่นต่อไหม
-        playing = askToPlayAgain();
-    }
-
-    cout << "ขอบคุณที่เล่น Blackjack!" << endl;
-    return 0;
-}
-
-void startGame() {
-    cout << "ยินดีต้อนรับสู่เกม Blackjack!" << endl;
-}
-
-bool askToPlayAgain() {
-    char choice;
-    cout << "คุณต้องการเล่นอีกครั้ง (Y/N)? ";
-    cin >> choice;
-    return (choice == 'Y' || choice == 'y');
-}
-
-void printStats(int wins, int losses, int ties, int playerMoney) {
-    cout << "\n--- สถิติการเล่น ---" << endl;
-    cout << "ชนะ: " << wins << " เกม" << endl;
-    cout << "แพ้: " << losses << " เกม" << endl;
-    cout << "เสมอ: " << ties << " เกม" << endl;
-    cout << "เงินคงเหลือ: " << playerMoney << " บาท" << endl;
-    cout << "----------------------\n" << endl;
-}
-
-void loadStats(int &wins, int &losses, int &ties, int &playerMoney) {
-    ifstream inputFile("stats.txt");
-
-    if (inputFile.is_open()) {
-        inputFile >> wins >> losses >> ties >> playerMoney;
-        inputFile.close();
-    } else {
-        cout << "ไม่พบไฟล์สถิติ บันทึกใหม่..." << endl;
-    }
-}
-
-void saveStats(int wins, int losses, int ties, int playerMoney) {
-    ofstream outputFile("stats.txt");
-
-    if (outputFile.is_open()) {
-        outputFile << wins << endl;
-        outputFile << losses << endl;
-        outputFile << ties << endl;
-        outputFile << playerMoney << endl;
-        outputFile.close();
-    } else {
-        cout << "ไม่สามารถบันทึกไฟล์สถิติได้!" << endl;
-    }
-}
-
-void dealInitialCards(int &playerScore, int &dealerScore, int &playerMoney, int &betAmount) {
-    playerScore = rand() % 11 + 2; // สุ่มคะแนนเริ่มต้นของผู้เล่น (2-12)
-    dealerScore = rand() % 11 + 2; // สุ่มคะแนนเริ่มต้นของดีลเลอร์ (2-12)
-
-    cout << "คุณได้คะแนนเริ่มต้น: " << playerScore << endl;
-    cout << "ดีลเลอร์ได้คะแนนเริ่มต้น: " << dealerScore << endl;
-}
-
-void playerTurn(int &playerScore, int &playerMoney, int &betAmount) {
-    char choice;
-    while (playerScore <= 21) {
-        cout << "คุณต้องการ (1) Hit หรือ (2) Stand? ";
-        cin >> choice;
-
-        if (choice == '1') {
-            int newCard = rand() % 11 + 1; // สุ่มการ์ดใหม่ (1-11)
-            playerScore += newCard;
-            cout << "คุณได้การ์ดใหม่: " << newCard << " คะแนนรวม: " << playerScore << endl;
-
-            if (playerScore > 21) {
-                cout << "คุณ Bust! คะแนนเกิน 21!" << endl;
-                break;
-            }
-        } else if (choice == '2') {
-            break;
-        } else {
-            cout << "คำสั่งไม่ถูกต้อง กรุณาเลือก 1 หรือ 2!" << endl;
-        }
-    }
-}
-
-void dealerTurn(int &dealerScore) {
-    cout << "ดีลเลอร์กำลังเล่น..." << endl;
-    while (dealerScore < 17) {
-        int newCard = rand() % 11 + 1; // สุ่มการ์ดใหม่ (1-11)
-        dealerScore += newCard;
-        cout << "ดีลเลอร์ได้การ์ดใหม่: " << newCard << " คะแนนรวม: " << dealerScore << endl;
-    }
+    
 }
