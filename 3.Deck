@@ -33,6 +33,18 @@ string drawCard(vector<string>& deck) {
     return drawnCard;
 }
 
+int getCardscore(string card){   //คำนวณคะแนน
+    char k = card[0];
+    if ( k == 'J'||k == 'Q'|| k == 'K' || k == '1'){
+        return 10;
+    }else if(k == 'A'){
+        return 11;
+    }else{
+        int score = stoi(string(1,k));
+        return score;
+    }
+}
+
 int main() {
     vector<string> deck = initializeDeck();
 
