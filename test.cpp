@@ -8,11 +8,9 @@
 using namespace std;
 
 int playerMoney = 1000; // จำนวนเงินเริ่มต้นของผู้เล่น
-int bet,cardScores;
+int bet, cardScores;
 
-
-int betAmount(int bet,int playerMoney)
-{
+int betAmount(int bet, int& playerMoney) {
     while (true) {
         if (cin.fail()) {
             cout << "Plese enter the number" << endl;
@@ -28,13 +26,13 @@ int betAmount(int bet,int playerMoney)
     }
     cout << "Bet: " << bet << " Baht" << endl;
     playerMoney -= bet; // หักเงินจากผู้เล่น
-
+    return bet;
 }
 
 vector<string> initializeDeck() {
     string suits[] = {"D", "S", "H", "C"};
-    string ranks[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-    int cardScores[] = {1,2,3,4,5,6,7,8,9,10,10,10,10};
+    string ranks[] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", 
+    "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K","A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
     vector<string> deck;
     for (string suit : suits) {
         for (string rank : ranks) {
@@ -45,7 +43,6 @@ vector<string> initializeDeck() {
 }
 
 void shuffleDeck(vector<string>& deck) {
-    srand(time(0));
     random_shuffle(deck.begin(), deck.end());
 }
 
@@ -58,48 +55,113 @@ string drawCard(vector<string>& deck) {
     return drawnCard;
 }
 
-int calDealerScore(int dealercard1, int dealercard2, int dealercard3) {
-    int hand[] = {dealercard1, dealercard2, dealercard3};
-    int sum = 0, aceCount = 0;
-
-    for (int i = 0; i < 3; i++) {
-        if (hand[i] == 1) {
-            aceCount++;
-            sum += 11;
-        } else {
-            sum += cardScores;
-        }
+int getCardScore(const string& card) {
+    char k = card[0];
+    if (k == 'J' || k == 'Q' || k == 'K' || k == '1') {
+        return 10;
+    } else if (k == 'A') {
+        return 11;
+    } else {
+        return stoi(string(1, k));
     }
-
-    while (sum > 21 && aceCount > 0) {
-        sum -= 10;
-        aceCount--;
-    }
-
-    return sum;
 }
-vector<string> deck = initializeDeck();
-string playercard1 = drawCard(deck);
-string playercard2 = drawCard(deck);
-string dealercard1 = drawCard(deck);
-string dealercard2 = drawCard(deck);
 
+void playHand(vector<string>& deck, int& handScore) {
+    int action;
+    do {
+        cout << "(1) Hit , (2) Stand : ";
+        cin >> action;
+        if (action == 1) {
+            string newCard = drawCard(deck);
+            handScore += getCardScore(newCard);
+            cout << "New card: " << newCard << " (" << handScore << ")" << endl;
+            if (handScore > 21) {
+                cout << "Busted!" << endl;
+                break;
+            }
+        }
+    } while (action != 2);
+}
+
+void splitHand(vector<string>& deck, const string& card, int& playerMoney, int bet) {
+    if (playerMoney >= bet) {
+        playerMoney -= bet; // หักเงินเดิมพันสำหรับมือที่สอง
+        string newCard1 = drawCard(deck);
+        string newCard2 = drawCard(deck);
+        cout << "Split hand: " << card << " + " << newCard1 << " and " << card << " + " << newCard2 << endl;
+        
+        int hand1Score = getCardScore(card) + getCardScore(newCard1);
+        int hand2Score = getCardScore(card) + getCardScore(newCard2);
+        
+        cout << "Playing first hand..." << endl;
+        playHand(deck, hand1Score);
+        
+        cout << "Playing second hand..." << endl;
+        playHand(deck, hand2Score);
+    } else {
+        cout << "Not enough money to split." << endl;
+    }
+}
+
+int doubleDown(vector<string>& deck, int& playerScore, int& playerMoney, int bet) {
+    if (playerMoney >= bet) {
+        playerMoney -= bet; // เพิ่มเดิมพันเป็นสองเท่า
+        string newCard = drawCard(deck);
+        playerScore += getCardScore(newCard);
+        cout << "Double down! Drawn card: " << newCard << " (" << playerScore << ")" << endl;
+        if (playerScore > 21) {
+            cout << "Busted! You lose." << endl;
+        }
+        return playerScore;
+    }
+    cout << "Not enough money to double down." << endl;
+    return playerScore;
+}
 
 int main() {
-    
-    
-    cout << "Money ramain: " << playerMoney << " Baht" << endl;
-    cout << "Bet: ";
-    cin >> bet;
-    betAmount(bet,playerMoney);
+    int playerAction;
+    srand(time(0));
     vector<string> deck = initializeDeck();
     shuffleDeck(deck);
-    cout << "Dealer card: " << dealercard1 <<" One card is hidden"<<endl;
-   // int dealerScore = calDealerScore(dealercard1, 0, 0); 
-    cout << "Drawn card: " << playercard1 <<" and "<< playercard2<< endl;
-
+    string playerCard1 = drawCard(deck);
+    string playerCard2 = drawCard(deck);
+    string dealerCard1 = drawCard(deck);
+    string dealerCard2 = drawCard(deck);
+    cout << "Money remain: " << playerMoney << " Baht" << endl;
+    cout << "Bet: ";
+    cin >> bet;
+    bet = betAmount(bet, playerMoney);
+    cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
+    cout << "Player card: " << playerCard1 << " and " << playerCard2;
+    int scorePlayer = getCardScore(playerCard1) + getCardScore(playerCard2);
+    cout << " (" << scorePlayer << ")" << endl;
+    do {
+        cout << "(1) Hit , (2) Stand , ";
+        if (playerCard1 == playerCard2) cout << "(3) Split , ";
+        if (playerMoney >= bet) cout << "(4) Double down , ";
+        cout << "Select : ";
+        cin >> playerAction;
+    } while (playerAction != 1 && playerAction != 2 && playerAction != 3 && playerAction != 4);
+    if (playerAction == 1) {
+        
+        do {
+            string playerCard = drawCard(deck);
+            scorePlayer += getCardScore(playerCard);
+            cout << "New card: " << playerCard << " (" << scorePlayer << ")" << endl;
+            if (scorePlayer > 21) {
+                cout << "Busted! You lose." << endl;
+                break;
+            }
+            cout << "(1) Hit , (2) Stand : ";
+            cin >> playerAction;
+        } while (playerAction != 2);
+        cout << "-----------Turn end-----------"; 
     
-   
-   
+    } else if (playerAction == 2) {
+        cout << "-----------Turn end-----------";
+    } else if (playerAction == 3) {
+        splitHand(deck, playerCard1, playerMoney, bet);
+    } else if (playerAction == 4) {
+        scorePlayer = doubleDown(deck, scorePlayer, playerMoney, bet);
+    }
 }
-
