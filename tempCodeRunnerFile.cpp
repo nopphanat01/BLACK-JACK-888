@@ -1,1 +1,2 @@
- cout << "-----------Turn end-----------";
+    
+        } else if (playerAction == 2) {

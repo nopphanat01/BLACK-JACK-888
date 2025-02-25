@@ -123,24 +123,25 @@ void playHand(vector<string>& deck, vector<string>& playerHand, int& handScore) 
 void splitHand(vector<string>& deck, const string& card1, const string& card2, int& playerMoney, int bet) {
     if (playerMoney >= bet) {
         playerMoney -= bet; // หักเงินเดิมพันสำหรับมือที่สอง
-        
-        // จั่วไพ่เพิ่มสำหรับทั้งสองมือที่แยกออก
         string newCard1 = drawCard(deck);
         string newCard2 = drawCard(deck);
-        
-        cout << "Split hand: " << card1 << " + " << newCard1 << " and " << card2 << " + " << newCard2 << endl;
-        
-        // สร้าง vector ของมือผู้เล่นสำหรับแต่ละมือ
         vector<string> hand1 = {card1, newCard1};
         vector<string> hand2 = {card2, newCard2};
-
-        // แสดงคะแนนเริ่มต้นก่อนเล่นแต่ละมือ
         int hand1Score = getCardScore(card1) + getCardScore(newCard1);
         int hand2Score = getCardScore(card2) + getCardScore(newCard2);
+        
+        // จั่วไพ่เพิ่มสำหรับทั้งสองมือที่แยกออก
+        
+        cout << "First hand: " << card1 << " " << newCard1<< " ("<<hand1Score<<")"<<endl;
+        
+        // สร้าง vector ของมือผู้เล่นสำหรับแต่ละมือ
+        
+        // แสดงคะแนนเริ่มต้นก่อนเล่นแต่ละมือ
         
         // เล่นมือแรก
         cout << "Playing first hand..." << endl;
         playHand(deck, hand1, hand1Score); // ส่งมือแรกให้ playHand
+        cout<< " Second hand: " << card2 << " " << newCard2<< " ("<<hand2Score<<")"<<endl;
 
         // เล่นมือที่สอง
         cout << "Playing second hand..." << endl;
@@ -166,25 +167,70 @@ int doubleDown(vector<string>& deck, int& playerScore, int& playerMoney, int bet
     return playerScore;
 }
 void Calulate(int scoreplayer,int scoredealer){
+    
     if(scoreplayer > 21 ){
         cout  << "Busted! You lose." << endl;
         playerMoney -= bet; // หักเงินจากผู้เล่น
+    }
+    else if (scoredealer > 21 && scoreplayer >21)
+    {
+        cout << "Dealer win!\n";
+        playerMoney -= bet;
+    }
+     if(scoredealer > 21)
+    {
+        cout << "Player win!\n";
+        playerMoney += bet;
     }else if((21-scoreplayer) < (21-scoredealer)){
         cout << "Player win!\n";
         playerMoney += bet; // หักเงินจากผู้เล่น
     }else if((21-scoreplayer) > (21-scoredealer)){
         cout << "Dealer win!\n";
         playerMoney -= bet; // หักเงินจากผู้เล่น
+    }else if((21-scoreplayer) == (21-scoredealer))
+    {
+        cout << "Tie!\n";
+        playerMoney+=0;
     }
 }
 
-bool Askplayagain(){
+bool Askplayagain()
+{
     char choice;
-    cout << "Continue?(Y/N): ";
-    cin >> choice;
-    return(choice == 'Y'||choice == 'y');
+    do {
+        cout << "Continue? (Y/N): ";
+        cin >> choice;
+        if (cin.fail()) 
+        {
+            cin.clear(); 
+            cin.ignore(1000, '\n'); 
+            continue;
+        }
+        if (choice == 'Y' || choice == 'y')
+            return true;
+        else if (choice == 'N' || choice == 'n')
+            return false;
+        cout << "Invalid input. Please enter Y or N.\n";
+    } while (true); 
 }
 
+void printCard(vector<string>& hand) {
+    cout << "Your hand: ";
+    for (const string& card : hand) {
+        cout << card << " ";
+    }
+    
+}
+
+vector<string> showhand(string card) {
+    vector<string> hand;
+    hand.push_back(card);
+    return hand;
+}
+int acecount(string card)
+{
+    
+}
 int main() {
     int playerAction;
     bool playing = true;
@@ -199,15 +245,17 @@ int main() {
         string dealerCard1 = drawCard(deck);
         string dealerCard2 = drawCard(deck);
         string dealerCard[5] = {dealerCard1, dealerCard2, "" , "" , ""}; 
+        vector<string> hand = showhand(playerCard1); 
+        hand.push_back(playerCard2);
         int cardCount = 2;
         cout << "Money remain: " << playerMoney << " Baht" << endl;
         bet = betAmount(playerMoney);
         cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
-        cout << "Player card: " << playerCard1 << " and " << playerCard2;
+        printCard(hand);
         int scorePlayer = getCardScore(playerCard1) + getCardScore(playerCard2);
         if(scorePlayer > 21 && playerCard1[0] == 'A' )
         scorePlayer -= 10 ;
-        else if(scorePlayer > 21 && playerCard1[1] == 'A' )
+        else if(scorePlayer > 21 && playerCard2[1] == 'A' )
         scorePlayer -= 10 ;
         int scoredealer = getCardScore(dealerCard[0]) + getCardScore(dealerCard[1]);
         cout << " (" << scorePlayer << ")" << endl;
@@ -221,13 +269,24 @@ int main() {
         if (playerAction == 1) {
             
             do {
-                string playerCard = drawCard(deck);
-                scorePlayer += getCardScore(playerCard);
-                cout << "New card: " << playerCard << " (" << scorePlayer << ")" << endl;
-                if (scorePlayer > 21) {
-                    //cout << "Busted! You lose." << endl;
-                    break;
+                if (scorePlayer >= 21)
+                 {
+                    if(playerCard1[0] == 'A'||playerCard2[0] == 'A')
+                    scorePlayer-=10;
                 }
+                string playerCard = drawCard(deck);
+                hand.push_back(playerCard);
+                if (scorePlayer >= 21) 
+                {
+                    if(playerCard1[0] == 'A'||playerCard2[0] == 'A')
+                    scorePlayer-=10;
+                }
+                scorePlayer += getCardScore(playerCard);
+                printCard(hand);
+                cout<< " (" << scorePlayer << ")" << endl;
+                if(scorePlayer>21)
+                break;
+                
                 cout << "(1) Hit , (2) Stand : ";
                 cin >> playerAction;
             } while (playerAction != 2);
@@ -248,15 +307,29 @@ int main() {
             cardCount++; 
         }
         
-        
-        cout << "Dealer's cards: ";
+        if (scorePlayer>21)
+       {
+        cout  << "Busted! You lose." << endl;
+        playerMoney -= bet;
+       }
+       else if(scorePlayer == 21)
+       {
+        cout << "Dealer's cards: "<< dealerCard[1] << " "<< dealerCard[2]<< "(" << scoredealer << ")\n";
+        Calulate(scorePlayer,scoredealer);
+       }
+        else
+        {
+            cout << "Dealer's cards: ";
         for (int i = 0; i < cardCount; i++) {
             cout << dealerCard[i] << " ";
         }
         cout << "(" << scoredealer << ")\n";
         
         Calulate(scorePlayer,scoredealer);
+        
+        }
         playing = Askplayagain();
         }
+        
     
 }
