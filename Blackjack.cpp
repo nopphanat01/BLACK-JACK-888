@@ -45,6 +45,7 @@ vector<string> initializeDeck() {
 }
 
 void shuffleDeck(vector<string>& deck) {
+    srand(time(0));
     random_shuffle(deck.begin(), deck.end());
     
 }
@@ -235,6 +236,7 @@ int main() {
 
     while (playing) //Game loop
     {
+        cout << "Money remain: " << playerMoney << " Baht" << endl;
         vector<string> deck = initializeDeck();
         shuffleDeck(deck);
         string playerCard1 = drawCard(deck);
@@ -245,7 +247,6 @@ int main() {
         vector<string> hand = showhand(playerCard1); 
         hand.push_back(playerCard2);
         int cardCount = 2;
-        cout << "Money remain: " << playerMoney << " Baht" << endl;
         bet = betAmount(playerMoney);
         cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
         printCard(hand);
