@@ -10,19 +10,6 @@ using namespace std;
 int playerMoney = 1000; // จำนวนเงินเริ่มต้นของผู้เล่น
 int bet, cardScores;
 
-void showPlayerWin() {
-    cout << "\033[1;32m"; // ตัวหนาสีเขียว
-    cout << R"(
-██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗     ██╗    ██╗██╗███╗   ██╗
-██╔══██╗██║     ██╔══██╗██║   ██║██╔════╝██╔══██╗    ██║    ██║██║████╗  ██║
-██████╔╝██║     ███████║██║   ██║█████╗  ██║  ██║    ██║ █╗ ██║██║██╔██╗ ██║
-██╔═══╝ ██║     ██╔══██║██║   ██║██╔══╝  ██║  ██║    ██║███╗██║██║██║╚██╗██║
-██║     ███████╗██║  ██║╚██████╔╝███████╗██████╔╝    ╚███╔███╔╝██║██║ ╚████║
-╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═════╝      ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝
-    )" << endl;
-    cout << "\033[0m"; // รีเซ็ตสี
-}
-
 int betAmount(int playerMoney) {
     do {
         cout << "Enter your bet: ";
@@ -192,7 +179,6 @@ void Calulate(int scoreplayer,int scoredealer){
     }
      if(scoredealer > 21)
     {
-        
         cout << "Player win!\n";
         playerMoney += bet;
     }else if((21-scoreplayer) < (21-scoredealer)){
@@ -214,7 +200,6 @@ bool Askplayagain()
     do {
         cout << "Continue? (Y/N): ";
         cin >> choice;
-        cout<<"\n---------------------------------------------------------\n\n";
         if (cin.fail()) 
         {
             cin.clear(); 
@@ -242,16 +227,13 @@ vector<string> showhand(string card) {
     hand.push_back(card);
     return hand;
 }
-int acecount(string card)
-{
-    
-}
+
 int main() {
     int playerAction;
     bool playing = true;
-    srand(time(0));
-   
-    while (playing||playerMoney>0)
+    cout << "Black jack 888\n-------------------------------------\n";
+
+    while (playing) //Game loop
     {
         vector<string> deck = initializeDeck();
         shuffleDeck(deck);
@@ -277,8 +259,7 @@ int main() {
         do {
             cout << "(1) Hit , (2) Stand , ";
             if (playerCard1[0] == playerCard2[0]) cout << "(3) Split , ";
-            if (playerMoney >= 2*bet) cout << "(4) Double down , ";
-
+            if (playerMoney >= bet) cout << "(4) Double down , ";
             cout << "Select : ";
             cin >> playerAction;
         } while (playerAction != 1 && playerAction != 2 && playerAction != 3 && playerAction != 4);
