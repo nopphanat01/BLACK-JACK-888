@@ -121,6 +121,7 @@ string drawCard(vector<string>& deck) {
 }
 
 int getCardScore(const string& card) {
+    if(card == "No more cards in the deck!") return 0;
     char k = card[0];
     if (k == 'J' || k == 'Q' || k == 'K' || k == '1') {
         return 10;
@@ -208,21 +209,29 @@ void Calculatesplite(int scoreP , int scored){
 }
 
 bool Askplayagain() {
-    char choice;
+    string choice;
     cout << "Do you want to play again? (y/n): ";
     cin >> choice;
-    if (choice == 'y' || choice == 'Y') {
+    if (choice == "y" || choice == "Y") {
         return true;
-    } else {
+    } else if (choice == "n" || choice == "N") {
         return false;
+    } else {
+        cout << "Invalid input. Please enter 'y' or 'n'." << endl;
+        return Askplayagain();
     }
 }
 
 int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& dealerhand, int x, int& score, int& money, int scoredealer) {
+    char s1 = hand[0][0], s2 = hand[1][0];
     if (x == 1) {
         bool aceAdjusted = false;
         while (true) {
             string newCard = drawCard(deck);
+            if(newCard == "No more cards in the deck!") {
+                cout << "No more cards in the deck!\n";
+                return score;
+            }
             hand.push_back(newCard);
             score += getCardScore(newCard);
 
@@ -240,26 +249,33 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
             printCard(hand);
             cout << " (" << score << ")\n";
 
-            if (score >= 21) return score;
-
-            cout << "(1) Hit  (2) Stand\nSelect: ";
-            cin >> x;
-            if (x != 1) break;
+            if (score >= 21) {return score;}
+            while(true){
+                cout << "(1) Hit  (2) Stand\nSelect: ";
+                cin >> x;
+                if (x == 2 || x == 1) break;
+            }
+            if (x == 2) break;
         }
     }
     else if (x == 2) { // Stand
+        cout <<"-----------------------------------------------------------------------------\n";
+        cout << "Dealer card: "; 
+        printCard(dealerhand); 
+        cout << " (" << scoredealer << ")" << endl;
         cout << "Your hand: ";
         printCard(hand);
-        cout << "(" << score << ")\n";
-        return score;
+        cout << " (" << score << ")" << endl;
+
+        Calulate(score, scoredealer);
+        cout <<"-----------------------------------------------------------------------------\n";
     }
-    else if (x == 3) { // Double down
+    else if (x == 3 && score < 21) { // Double down
         bet *= 2;
         bool aceAdjusted = false;
-        
-            string newCard = drawCard(deck);
-            hand.push_back(newCard);
-            score += getCardScore(newCard);
+        string newCard = drawCard(deck);
+        hand.push_back(newCard);
+        score += getCardScore(newCard);
             if (score > 21 && !aceAdjusted) {
                 for (string& card : hand) {
                     if (card[0] == 'A') {
@@ -269,17 +285,18 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
                     }
                 }
             }
-            cout << "Your hand: ";
-            printCard(hand);
-            cout << " (" << score << ")\n";
-            cout << "Your hand: ";
+        cout <<"-----------------------------------------------------------------------------\n";
+        cout << "Dealer card: "; 
+        printCard(dealerhand); 
+        cout << " (" << scoredealer << ")" << endl;
+        cout << "Your hand: ";
         printCard(hand);
-        cout << " (" << score << ")\n";
-        return score;
-        
-        
+        cout << " (" << score << ")" << endl;
+
+        Calulate(score, scoredealer);
+        cout <<"-----------------------------------------------------------------------------\n";
     }
-    else if (x == 4) { // Split
+    else if (x == 4 && s1 == s2) { // Split
         vector<string> hand1 = { hand[0], drawCard(deck) };
         vector<string> hand2 = { hand[1], drawCard(deck) };
         int bet2 = bet;
@@ -356,7 +373,8 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         }
 
         // Compare both hands with the dealer
-        cout << "\nDealer card: "; 
+        cout <<"-----------------------------------------------------------------------------\n";
+        cout << "Dealer card: "; 
         printCard(dealerhand); 
         cout << " (" << scoredealer << ")" << endl;
         cout << "Hand 1: ";
@@ -369,6 +387,7 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         cout << "Hand1\n";
         Calculatesplite(score2, scoredealer);
         cout << "Hand2\n";
+        cout <<"-----------------------------------------------------------------------------\n";
     } else {
         cout << "(1) Hit  (2) Stand  ";
         if (score < 21) { cout << "(3) Double down  "; }
@@ -377,7 +396,7 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         cin >> x;
         return playerdecision(deck, hand,dealerhand, x, score, money, scoredealer); // Recursive call
     }
-    return score;
+    return score,x;
 }
 
 int main() {
@@ -396,16 +415,18 @@ int main() {
     string ans;
     int playerAction;
     bool playing = true;
-    int cardCount = 2;
     vector<string> deck = initializeDeck();
     while (true)
     {
-        cout << "Do you want to play new game or continue last game? (N/C): ";
+        cout << "Welcome to Blackjack! Would you like to (L)oad or (N)ew game? : ";
         cin >> ans;
         if(ans == "n" || ans == "N"){
             playerMoney = 1000;
+            player.score = 0;
+            player.gamesPlayed = 0;
+            player.highScore = 0;
             break;
-        }else if(ans == "c" || ans == "C"){
+        }else if(ans == "l" || ans == "L"){
             break;
         }else{
 
@@ -421,19 +442,34 @@ int main() {
         shuffleDeck(deck);
 
         // player hand
+        vector<string> hand;
         string playerCard1 = drawCard(deck);
         string playerCard2 = drawCard(deck);
-        vector<string> hand = showhand(playerCard1); 
+        if(playerCard1 == "No more cards in the deck!" || playerCard2 == "No more cards in the deck!") {
+            cout << "No more cards in the deck!\n";
+            break;
+        }
+        hand.push_back(playerCard1);
         hand.push_back(playerCard2);
 
         // dealer hand
+        vector<string> dealerhand;
         string dealerCard1 = drawCard(deck);
         string dealerCard2 = drawCard(deck);
-        vector<string> dealerhand = showhand(dealerCard1);
+         if(dealerCard1 == "No more cards in the deck!" || dealerCard2 == "No more cards in the deck!") {
+            cout << "No more cards in the deck!\n";
+            break;
+        }
+        dealerhand.push_back(dealerCard1);
         dealerhand.push_back(dealerCard2);
 
+        //show deck
+        cout <<"----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        printCard(deck);cout << "\n";
+        cout <<"----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+
         // show cards
-        cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
+        cout << "Dealer card: " << dealerhand[0]<< " (One card is hidden) (" << getCardScore(dealerhand[0]) << ")" << endl;
         int scorePlayer = calculateTotalScore(hand);
         cout << "Your hand: ";
         printCard(hand);
@@ -442,28 +478,28 @@ int main() {
         // player decision
         cout << "(1) Hit  (2) Stand  ";
         if (scorePlayer < 21) { cout << "(3) Double down  "; }
-        if (playerCard1[0] == playerCard2[0]) cout << "(4) Split";
+        if (playerCard1[0] == playerCard2[0]) {cout << "(4) Split";}
         cout << "\nSelect : ";
         cin >> playerAction;
-        cout << endl;
 
         // dealer's score
         int scoredealer = calculateTotalScore(dealerhand);
-        cout << "Dealer card: " << dealerCard1 << " (One card is hidden) (" << getCardScore(dealerCard1) << ")" << endl;
-
         // dealer action
-        while (scoredealer < 17 && cardCount < 5) { 
+        while (scoredealer < 17) { 
             dealerhand.push_back(drawCard(deck));
             scoredealer += getCardScore(dealerhand.back());
-            cardCount++; 
+        }
+        if(playerAction == 1){
+        cout << "\nDealer card: " << dealerhand[0] << " (One card is hidden) (" << getCardScore(dealerhand[0]) << ")" << endl;
         }
 
         // player decision
         playerdecision(deck, hand,dealerhand, playerAction, scorePlayer, playerMoney, scoredealer);
-
+        
         // decide win/loss
-        if(playerAction != 4){
-            cout << "\nDealer card: "; 
+        if(playerAction != 2 && playerAction != 4 && playerAction != 3){
+            cout <<"-----------------------------------------------------------------------------\n";
+            cout << "Dealer card: "; 
             printCard(dealerhand); 
             cout << " (" << scoredealer << ")" << endl;
             cout << "Your hand: ";
@@ -471,6 +507,7 @@ int main() {
             cout << " (" << scorePlayer << ")" << endl;
 
             Calulate(scorePlayer, scoredealer);
+            cout <<"-----------------------------------------------------------------------------\n";
         }
 
         // อัปเดตสถิติผู้เล่น
@@ -487,6 +524,5 @@ int main() {
     }
 // แสดงสถิติ
 showStatistics(player);
-//ต้องถามว่าอยากเล่นต่อมั้ยถ้าอยากเล่นให้ADDตัง
     return 0;
 }
