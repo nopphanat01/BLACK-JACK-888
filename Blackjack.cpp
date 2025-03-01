@@ -541,6 +541,10 @@ int main() {
     }
         
     while (playing&&playerMoney>0) {
+        //deck<10
+        if(deck.size()<10) {
+            deck = initializeDeck();
+        }
         // bet
         cout << "Money remain: " << playerMoney << " Baht" << endl;
         betAmount(playerMoney);
