@@ -1,1 +1,1 @@
-playerMoney += bet
+if (score >= 21) {return score;}

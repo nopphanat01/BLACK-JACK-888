@@ -9,6 +9,9 @@
 #include <random>
 using namespace std;
 
+bool hasPotion = true ; // ผู้เล่นเริ่มต้นมีน้ำยา 1 ครั้ง
+const double potionChance = 0.75;
+
 // โครงสร้าง Player และฟังก์ชันที่เกี่ยวข้อง
 struct Player {
     string name;
@@ -27,9 +30,9 @@ void saveGame(const string& filename, const Player& player) {
         outFile << player.gamesPlayed << endl;
         outFile << player.highScore << endl;
         outFile.close();
-        //cout << "✅ Game is saved\n";
+        //cout << "Game is saved\n";
     } else {
-        cout << "❌ Ngo\n";
+        cout << "Save maidai\n";
     }
 }
 
@@ -42,10 +45,10 @@ bool loadGame(const string& filename, Player& player) {
         inFile >> player.gamesPlayed;
         inFile >> player.highScore;
         inFile.close();
-        cout << "✅ Load\n";
+        cout << "Load\n";
         return true;
     } else {
-        cout << "❌ Cant load\n";
+        cout << "Cant load\n";
         return false;
     }
 }
@@ -58,12 +61,12 @@ void updateStatistics(Player& player) {
 }
 
 void showStatistics(const Player& player) {
-    cout << "📂 User\n";
-    cout << "👤 Name " << player.name << endl;
-    cout << "💰 Money remain: $" << player.money << endl;
-    cout << "🎯 Recent score: " << player.score << endl;
-    cout << "📊 Game played: " << player.gamesPlayed << endl;
-    cout << "🏆 Highest score: " << player.highScore << endl;
+    cout << "User\n";
+    cout << "Name " << player.name << endl;
+    cout << "Money remain: $" << player.money << endl;
+    cout << "Recent score: " << player.score << endl;
+    cout << "Game played: " << player.gamesPlayed << endl;
+    cout << "Highest score: " << player.highScore << endl;
 }
 
 // ฟังก์ชันเดิมของเกม Blackjack
@@ -162,26 +165,26 @@ vector<string> showhand(string card) {
     return hand;
 }
 
-void Calulate(int scorePlayer, int scoredealer,int playerMoney) {
+void Calulate(int scorePlayer, int scoredealer) {
     if (scorePlayer > 21) {
         cout << "Busted! You lose this hand." << endl;
         playerMoney -= bet;  // Deduct bet for bust
-        if (playerMoney<0) playerMoney=0;
+        
     }
     else if (scoredealer > 21) {
         cout << "Dealer busted! Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if dealer busts
-        if (playerMoney<0) playerMoney=0;
+        
     }
     else if (scorePlayer > scoredealer) {
         cout << "Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if their score is greater
-        if (playerMoney<0) playerMoney=0;
+    
     }
     else if (scoredealer > scorePlayer) {
         cout << "Dealer wins this hand!" << endl;
         playerMoney -= bet;  // Dealer wins if their score is greater
-        if (playerMoney<0) playerMoney=0;
+        
     }
     else {
         cout << "It's a tie this hand!" << endl;
@@ -225,6 +228,66 @@ bool Askplayagain() {
     }
 }
 
+bool usePotion(vector<string>& hand, vector<string>& deck, int& score) {
+    if (hand.empty()) return false; // ถ้ามือว่างไม่สามารถใช้ได้
+
+    // ลบการ์ดใบล่าสุด
+    string removedCard = hand.back();
+    hand.pop_back();
+    score -= getCardScore(removedCard);
+
+    // จั่วการ์ดใหม่
+    string newCard = drawCard(deck);
+    hand.push_back(newCard);
+    score += getCardScore(newCard);
+
+    // ตรวจสอบและปรับแต้ม A หากคะแนนเกิน 21
+    bool aceAdjusted = false;
+    if (score > 21) {
+        for (string& card : hand) {
+            if (card[0] == 'A' && getCardScore(card) == 11) { // หาก A ถูกนับเป็น 11
+                score -= 10; // ปรับ A เป็น 1
+                aceAdjusted = true;
+                break;
+            }
+        }
+    }
+
+    cout << "You used a magic potion! Removed " << removedCard << " and drew " << newCard << ".\n";
+    cout << "Your new hand: ";
+    printCard(hand);
+    cout << " (" << score << ")\n";
+
+    return true; // ใช้ Potion สำเร็จ
+}
+
+void checkAndUsePotion(vector<string>& hand, vector<string>& deck, int& score) {
+    if (hasPotion && score > 21) {
+        cout << "Your score is over 21! Do you want to use a magic potion? (y/n): ";
+        char choice;
+        cin >> choice;
+
+        if (choice == 'y' || choice == 'Y') {
+            // สุ่มโอกาส 75% ที่จะใช้ได้สำเร็จ
+            double randomValue = (double)rand() / RAND_MAX;
+            if (randomValue <= potionChance) {
+                if (usePotion(hand, deck, score)) {
+                    // ตรวจสอบคะแนนหลังใช้ Potion
+                    if (score <= 21) {
+                        hasPotion = false; // ใช้ Potion สำเร็จและคะแนนไม่เกิน 21
+                    } else {
+                        cout << "The potion was used, but your score is still over 21. You still have the potion.\n";
+                        // ไม่ตั้งค่า hasPotion = false; เพราะ Potion ยังคงมีอยู่
+                    }
+                }
+            } else {
+                cout << "The potion failed! You still have potion.\n";
+                // ไม่ตั้งค่า hasPotion = false; เพราะ Potion ยังคงมีอยู่
+            }
+        }
+    }
+}
+
 int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& dealerhand, int x, int& score, int& money, int scoredealer) {
     char s1 = hand[0][0], s2 = hand[1][0];
     if (x == 1) {
@@ -251,6 +314,16 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
             cout << "Your hand: ";
             printCard(hand);
             cout << " (" << score << ")\n";
+            if (score > 21) {
+                checkAndUsePotion(hand, deck, score);
+                if (score <= 21) {
+                    cout << "\nYour new score: " << score << "\n";
+                    break;
+                } else {
+                    cout << "Your score is still over 21.\n";
+                    bool hasPotion = true;
+                }
+            }
 
             if (score >= 21) {return score;}
             while(true){
@@ -280,7 +353,7 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         printCard(hand);
         cout << " (" << score << ")" << endl;
 
-        Calulate(score, scoredealer,playerMoney);
+        Calulate(score, scoredealer);
         cout <<"-----------------------------------------------------------------------------\n";
     }
     else if (x == 3 && score < 21) { // Double down
@@ -316,7 +389,7 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         printCard(hand);
         cout << " (" << score << ")" << endl;
 
-        Calulate(score, scoredealer,playerMoney);
+        Calulate(score, scoredealer);
         cout <<"-----------------------------------------------------------------------------\n";
     }
     else if (x == 4 && s1 == s2) { // Split
@@ -451,6 +524,7 @@ int main() {
     vector<string> deck = initializeDeck();
     while (true)
     {
+       
         cout << "Welcome to Blackjack! Would you like to (L)Load or (N)New game? : ";
         cin >> ans;
         if(ans == "n" || ans == "N"){
@@ -554,7 +628,7 @@ int main() {
             printCard(hand);
             cout << " (" << scorePlayer << ")" << endl;
 
-            Calulate(scorePlayer, scoredealer,playerMoney);
+            Calulate(scorePlayer, scoredealer);
             cout <<"-----------------------------------------------------------------------------\n";
         }
 
@@ -574,3 +648,4 @@ int main() {
 showStatistics(player);
     return 0;
 }
+
