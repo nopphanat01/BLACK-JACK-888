@@ -303,7 +303,7 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
 
             if (score > 21 && !aceAdjusted) {
                 for (string& card : hand) {
-                    if (card[0] == 'A') {
+                    if (card[0] == 'A' && getCardScore(card) == 11) {
                         score -= 10;
                         aceAdjusted = true;
                         break;
