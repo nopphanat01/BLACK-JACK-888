@@ -1,2 +1,1 @@
-    
-        } else if (playerAction == 2) {
+playerMoney += bet

@@ -162,22 +162,26 @@ vector<string> showhand(string card) {
     return hand;
 }
 
-void Calulate(int scorePlayer, int scoredealer) {
+void Calulate(int scorePlayer, int scoredealer,int playerMoney) {
     if (scorePlayer > 21) {
         cout << "Busted! You lose this hand." << endl;
         playerMoney -= bet;  // Deduct bet for bust
+        if (playerMoney<0) playerMoney=0;
     }
     else if (scoredealer > 21) {
         cout << "Dealer busted! Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if dealer busts
+        if (playerMoney<0) playerMoney=0;
     }
     else if (scorePlayer > scoredealer) {
         cout << "Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if their score is greater
+        if (playerMoney<0) playerMoney=0;
     }
     else if (scoredealer > scorePlayer) {
         cout << "Dealer wins this hand!" << endl;
         playerMoney -= bet;  // Dealer wins if their score is greater
+        if (playerMoney<0) playerMoney=0;
     }
     else {
         cout << "It's a tie this hand!" << endl;
@@ -261,12 +265,22 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         cout <<"-----------------------------------------------------------------------------\n";
         cout << "Dealer card: "; 
         printCard(dealerhand); 
+        bool aceAdjusted = false;
+        if (scoredealer > 21 && !aceAdjusted) {
+            for (string& card : dealerhand) {
+                if (card[0] == 'A') {
+                    scoredealer -= 10;
+                    aceAdjusted = true;
+                    break;
+                }
+            }
+        }
         cout << " (" << scoredealer << ")" << endl;
         cout << "Your hand: ";
         printCard(hand);
         cout << " (" << score << ")" << endl;
 
-        Calulate(score, scoredealer);
+        Calulate(score, scoredealer,playerMoney);
         cout <<"-----------------------------------------------------------------------------\n";
     }
     else if (x == 3 && score < 21) { // Double down
@@ -287,12 +301,22 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         cout <<"-----------------------------------------------------------------------------\n";
         cout << "Dealer card: "; 
         printCard(dealerhand); 
+        if (scoredealer > 21 && !aceAdjusted) {
+            for (string& card : dealerhand) {
+                if (card[0] == 'A') {
+                    scoredealer -= 10;
+                    aceAdjusted = true;
+                    break;
+                }
+            }
+        }
         cout << " (" << scoredealer << ")" << endl;
+
         cout << "Your hand: ";
         printCard(hand);
         cout << " (" << score << ")" << endl;
 
-        Calulate(score, scoredealer);
+        Calulate(score, scoredealer,playerMoney);
         cout <<"-----------------------------------------------------------------------------\n";
     }
     else if (x == 4 && s1 == s2) { // Split
@@ -375,6 +399,16 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
         cout <<"-----------------------------------------------------------------------------\n";
         cout << "Dealer card: "; 
         printCard(dealerhand); 
+        bool aceAdjusted = false;
+        if (scoredealer > 21 && !aceAdjusted) {
+            for (string& card : dealerhand) {
+                if (card[0] == 'A') {
+                    scoredealer -= 10;
+                    aceAdjusted = true;
+                    break;
+                }
+            }
+        }
         cout << " (" << scoredealer << ")" << endl;
         cout << "Hand 1: ";
         printCard(hand1);
@@ -470,8 +504,8 @@ int main() {
 
         // player decision
         cout << "(1) Hit  (2) Stand  ";
-        if (scorePlayer < 21 && playerMoney>2*bet) { cout << "(3) Double down  "; }
-        if (playerCard1[0] == playerCard2[0]) {cout << "(4) Split";}
+        if (scorePlayer < 21 && playerMoney>=2*bet) { cout << "(3) Double down  "; }
+        if (playerCard1[0] == playerCard2[0] && playerMoney>=2*bet) {cout << "(4) Split";}
         cout << "\nSelect : ";
         cin >> playerAction;
 
@@ -505,12 +539,22 @@ int main() {
             cout <<"-----------------------------------------------------------------------------\n";
             cout << "Dealer card: "; 
             printCard(dealerhand); 
+            bool aceAdjusted = false;
+            if (scoredealer > 21 && !aceAdjusted) {
+                for (string& card : hand) {
+                    if (card[0] == 'A') {
+                        scoredealer -= 10;
+                        aceAdjusted = true;
+                        break;
+                    }
+                }
+            }
             cout << " (" << scoredealer << ")" << endl;
             cout << "Your hand: ";
             printCard(hand);
             cout << " (" << scorePlayer << ")" << endl;
 
-            Calulate(scorePlayer, scoredealer);
+            Calulate(scorePlayer, scoredealer,playerMoney);
             cout <<"-----------------------------------------------------------------------------\n";
         }
 
