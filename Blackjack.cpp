@@ -11,6 +11,7 @@ using namespace std;
 
 bool hasPotion = true ; // ผู้เล่นเริ่มต้นมีน้ำยา 1 ครั้ง
 const double potionChance = 0.75;
+int win,lose,tie;
 
 // โครงสร้าง Player และฟังก์ชันที่เกี่ยวข้อง
 struct Player {
@@ -29,6 +30,10 @@ void saveGame(const string& filename, const Player& player) {
         outFile << player.score << endl;
         outFile << player.gamesPlayed << endl;
         outFile << player.highScore << endl;
+        outFile << hasPotion << endl;
+        outFile << win << endl;
+        outFile << lose << endl;
+        outFile << tie << endl;
         outFile.close();
         //cout << "Game is saved\n";
     } else {
@@ -44,6 +49,10 @@ bool loadGame(const string& filename, Player& player) {
         inFile >> player.score;
         inFile >> player.gamesPlayed;
         inFile >> player.highScore;
+        inFile >> hasPotion;
+        inFile >> win;
+        inFile >> lose;
+        inFile >> tie;
         inFile.close();
         cout << "Load\n";
         return true;
@@ -58,12 +67,15 @@ void updateStatistics(Player& player) {
     if (player.money > player.highScore) {
         player.highScore = player.money;
     }
+    if (player.gamesPlayed > 0) {
+        player.score = ((win*100)/(win+lose+tie));
+    }
 }
 
 void showStatistics(const Player& player) {
     cout << "Your statics\n";
     cout << "Money remain: $" << player.money << endl;
-   // cout << "Recent score: " << player.score << endl;
+    cout << "Winrate: " << player.score << endl;
     cout << "Game played: " << player.gamesPlayed << endl;
     cout << "Highest money: $" << player.highScore << endl;
 }
@@ -168,48 +180,54 @@ void Calulate(int scorePlayer, int scoredealer) {
     if (scorePlayer > 21) {
         cout << "Busted! You lose this hand." << endl;
         playerMoney -= bet;  // Deduct bet for bust
-        
+        lose++;
     }
     else if (scoredealer > 21) {
         cout << "Dealer busted! Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if dealer busts
-        
+        win++;
     }
     else if (scorePlayer > scoredealer) {
         cout << "Player wins this hand!" << endl;
         playerMoney += bet;  // Player wins if their score is greater
-    
+        win++;
     }
     else if (scoredealer > scorePlayer) {
         cout << "Dealer wins this hand!" << endl;
         playerMoney -= bet;  // Dealer wins if their score is greater
-        
+        lose++;
     }
     else {
         cout << "It's a tie this hand!" << endl;
         // No money changes for a tie
+        tie++;
     }
 }
 void Calculatesplite(int scoreP , int scored){
     if (scoreP > 21) {
         cout << "Busted! You lose ";
         playerMoney -= bet;  // Deduct bet for bust
+        lose++;
     }
     else if (scored > 21) {
         cout << "Dealer busted! Player wins ";
         playerMoney += bet;  // Player wins if dealer busts
+        win++;
     }
     else if (scoreP > scored) {
         cout << "Player wins ";
         playerMoney += bet;  // Player wins if their score is greater
+        win++;
     }
     else if (scored > scoreP) {
         cout << "Dealer wins your ";
         playerMoney -= bet;  // Dealer wins if their score is greater
+        lose++;
     }
     else {
         cout << "It's a tie ";
         // No money changes for a tie
+        tie++;
     }
 }
 
@@ -284,6 +302,10 @@ void checkAndUsePotion(vector<string>& hand, vector<string>& deck, int& score) {
                 // ไม่ตั้งค่า hasPotion = false; เพราะ Potion ยังคงมีอยู่
             }
         }
+        if(score > 21){
+        cout << "Your score is still over 21.\n";
+        bool hasPotion = true;
+    }
     }
 }
 
@@ -315,13 +337,6 @@ int playerdecision(vector<string>& deck, vector<string>& hand,vector<string>& de
             cout << " (" << score << ")\n";
             if (score > 21) {
                 checkAndUsePotion(hand, deck, score);
-                if (score <= 21) {
-                    cout << "\nYour new score: " << score << "\n";
-                    break;
-                } else {
-                    cout << "Your score is still over 21.\n";
-                    bool hasPotion = true;
-                }
             }
 
             if (score >= 21) {return score;}
@@ -531,6 +546,10 @@ int main() {
             player.score = 0;
             player.gamesPlayed = 0;
             player.highScore = 1000;
+            hasPotion = true;
+            win = 0;
+            lose = 0;
+            tie = 0;
             break;
         }else if(ans == "l" || ans == "L"){
             break;
@@ -544,7 +563,6 @@ int main() {
         if(deck.size()<10) {
             deck = initializeDeck();
         }
-        updateStatistics(player);
         // bet
         cout << "Money remain: " << playerMoney << " Baht" << endl;
         betAmount(playerMoney);
@@ -638,9 +656,7 @@ int main() {
 
         // อัปเดตสถิติผู้เล่น
         player.money = playerMoney;
-        player.score = scorePlayer;
-        
-
+        updateStatistics(player);
         // บันทึกเกม
         saveGame(filename, player);
 
