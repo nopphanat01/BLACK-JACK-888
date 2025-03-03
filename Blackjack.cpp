@@ -55,18 +55,17 @@ bool loadGame(const string& filename, Player& player) {
 
 void updateStatistics(Player& player) {
     player.gamesPlayed++;
-    if (player.score > player.highScore) {
-        player.highScore = player.score;
+    if (player.money > player.highScore) {
+        player.highScore = player.money;
     }
 }
 
 void showStatistics(const Player& player) {
-    cout << "User\n";
-    cout << "Name " << player.name << endl;
+    cout << "Your statics\n";
     cout << "Money remain: $" << player.money << endl;
-    cout << "Recent score: " << player.score << endl;
+   // cout << "Recent score: " << player.score << endl;
     cout << "Game played: " << player.gamesPlayed << endl;
-    cout << "Highest score: " << player.highScore << endl;
+    cout << "Highest money: $" << player.highScore << endl;
 }
 
 // ฟังก์ชันเดิมของเกม Blackjack
@@ -512,7 +511,7 @@ int main() {
     player.money = 1000;
     player.score = 0;
     player.gamesPlayed = 0;
-    player.highScore = 0;
+    player.highScore = 1000;
 
     // โหลดข้อมูลผู้เล่น (ถ้ามี)
     if (loadGame(filename, player)) {
@@ -531,7 +530,7 @@ int main() {
             playerMoney = 1000;
             player.score = 0;
             player.gamesPlayed = 0;
-            player.highScore = 0;
+            player.highScore = 1000;
             break;
         }else if(ans == "l" || ans == "L"){
             break;
@@ -545,6 +544,7 @@ int main() {
         if(deck.size()<10) {
             deck = initializeDeck();
         }
+        updateStatistics(player);
         // bet
         cout << "Money remain: " << playerMoney << " Baht" << endl;
         betAmount(playerMoney);
@@ -639,7 +639,7 @@ int main() {
         // อัปเดตสถิติผู้เล่น
         player.money = playerMoney;
         player.score = scorePlayer;
-        updateStatistics(player);
+        
 
         // บันทึกเกม
         saveGame(filename, player);
@@ -652,4 +652,3 @@ int main() {
 showStatistics(player);
     return 0;
 }
-
