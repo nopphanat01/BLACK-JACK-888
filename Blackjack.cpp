@@ -11,13 +11,13 @@ using namespace std;
 
 bool hasPotion = true ; // ผู้เล่นเริ่มต้นมีน้ำยา 1 ครั้ง
 const double potionChance = 0.75;
-int win,lose,tie;
+double win,lose,tie;
 
 // โครงสร้าง Player และฟังก์ชันที่เกี่ยวข้อง
 struct Player {
     string name;
     int money;
-    int score;
+    double score;
     int gamesPlayed; // จำนวนเกมที่เล่น
     int highScore;   // คะแนนสูงสุด
 };
@@ -657,6 +657,7 @@ int main() {
         // อัปเดตสถิติผู้เล่น
         player.money = playerMoney;
         updateStatistics(player);
+
         // บันทึกเกม
         saveGame(filename, player);
 
